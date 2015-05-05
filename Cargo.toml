@@ -1,4 +1,11 @@
 [package]
 name = "bufstream"
 version = "0.1.0"
-authors = ["Alex Crichton <alex@alexcrichton.com>"]
+authors = ["The Rust Project Developers"]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/alexcrichton/bufstream"
+homepage = "https://github.com/alexcrichton/bufstream"
+documentation = "http://alexcrichton.com/bufstream"
+description = """
+Buffered I/O for streams where each read/write half is separately buffered
+"""
