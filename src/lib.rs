@@ -151,10 +151,10 @@ impl<S: Read + Write> Read for BufStream<S> {
 
 impl<S: Read + Write> Write for BufStream<S> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.inner.get_mut().0.as_mut().unwrap().get_mut().write(buf)
+        self.inner.get_mut().0.as_mut().unwrap().write(buf)
     }
     fn flush(&mut self) -> io::Result<()> {
-        self.inner.get_mut().0.as_mut().unwrap().get_mut().flush()
+        self.inner.get_mut().0.as_mut().unwrap().flush()
     }
 }
 
