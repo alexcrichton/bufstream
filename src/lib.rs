@@ -38,7 +38,7 @@ use std::fmt;
 use std::io::prelude::*;
 use std::io::{self, BufReader, BufWriter};
 
-const DEFAULT_BUF_SIZE: usize = 64 * 1024;
+const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
 /// Wraps a Stream and buffers input and output to and from it.
 ///
