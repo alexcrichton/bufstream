@@ -76,7 +76,7 @@ impl<W> From<IntoInnerError<W>> for io::Error {
     fn from(iie: IntoInnerError<W>) -> io::Error { iie.1 }
 }
 
-impl<W: Send + fmt::Debug> error::Error for IntoInnerError<W> {
+impl<W: fmt::Debug> error::Error for IntoInnerError<W> {
     fn description(&self) -> &str {
         error::Error::description(self.error())
     }
