@@ -37,6 +37,7 @@
 use std::fmt;
 use std::io::prelude::*;
 use std::io::{self, BufReader, BufWriter};
+use std::error;
 
 const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
@@ -58,6 +59,34 @@ pub struct BufStream<S: Write> {
 /// which may be used to recover from the condition.
 #[derive(Debug)]
 pub struct IntoInnerError<W>(W, io::Error);
+
+impl<W> IntoInnerError<W> {
+    /// Returns the error which caused the call to `into_inner()` to fail.
+    ///
+    /// This error was returned when attempting to write the internal buffer.
+    pub fn error(&self) -> &io::Error { &self.1 }
+    /// Returns the buffered writer instance which generated the error.
+    ///
+    /// The returned object can be used for error recovery, such as
+    /// re-inspecting the buffer.
+    pub fn into_inner(self) -> W { self.0 }
+}
+
+impl<W> From<IntoInnerError<W>> for io::Error {
+    fn from(iie: IntoInnerError<W>) -> io::Error { iie.1 }
+}
+
+impl<W: Send + fmt::Debug> error::Error for IntoInnerError<W> {
+    fn description(&self) -> &str {
+        error::Error::description(self.error())
+    }
+}
+
+impl<W> fmt::Display for IntoInnerError<W> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.error().fmt(f)
+    }
+}
 
 struct InternalBufWriter<W: Write>(Option<BufWriter<W>>);
 
