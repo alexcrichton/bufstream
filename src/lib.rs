@@ -170,6 +170,12 @@ impl<S: Read + Write> BufStream<S> {
 impl<S: Read + Write> BufRead for BufStream<S> {
     fn fill_buf(&mut self) -> io::Result<&[u8]> { self.inner.fill_buf() }
     fn consume(&mut self, amt: usize) { self.inner.consume(amt) }
+    fn read_until(&mut self, byte: u8, buf: &mut Vec<u8>) -> io::Result<usize> {
+        self.inner.read_until(byte, buf)
+    }
+    fn read_line(&mut self, string: &mut String) -> io::Result<usize> {
+        self.inner.read_line(string)
+    }
 }
 
 impl<S: Read + Write> Read for BufStream<S> {
