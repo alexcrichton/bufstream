@@ -9,3 +9,15 @@ documentation = "http://alexcrichton.com/bufstream"
 description = """
 Buffered I/O for streams where each read/write half is separately buffered
 """
+
+[dependencies.futures]
+optional = true
+version = "0.1.13"
+
+[dependencies.tokio-io]
+optional = true
+version = "0.1.1"
+
+[features]
+default = []
+tokio = ["futures", "tokio-io"]

@@ -34,10 +34,16 @@
 //! buf.write(&[0; 1024]).unwrap();
 //! ```
 
+#[cfg(feature = "tokio")] extern crate futures;
+#[cfg(feature = "tokio")] extern crate tokio_io;
+
 use std::fmt;
 use std::io::prelude::*;
 use std::io::{self, BufReader, BufWriter};
 use std::error;
+
+#[cfg(feature = "tokio")] use futures::Poll;
+#[cfg(feature = "tokio")] use tokio_io::{AsyncRead, AsyncWrite};
 
 const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
@@ -190,6 +196,16 @@ impl<S: Read + Write> Write for BufStream<S> {
     }
     fn flush(&mut self) -> io::Result<()> {
         self.inner.get_mut().0.as_mut().unwrap().flush()
+    }
+}
+
+#[cfg(feature = "tokio")]
+impl<S: AsyncRead + AsyncWrite> AsyncRead for BufStream<S> {}
+
+#[cfg(feature = "tokio")]
+impl<S: AsyncRead + AsyncWrite> AsyncWrite for BufStream<S> {
+    fn shutdown(&mut self) -> Poll<(), io::Error> {
+        self.inner.get_mut().0.as_mut().unwrap().shutdown()
     }
 }
 
