@@ -98,13 +98,11 @@ struct InternalBufWriter<W: Write>(Option<BufWriter<W>>);
 
 impl<W: Write> InternalBufWriter<W> {
     fn get_ref(&self) -> &BufWriter<W> {
-        let InternalBufWriter(ref w) = *self;
-        w.as_ref().unwrap()
+        self.0.as_ref().unwrap()
     }
 
     fn get_mut(&mut self) -> &mut BufWriter<W> {
-        let InternalBufWriter(ref mut w) = *self;
-        w.as_mut().unwrap()
+        self.0.as_mut().unwrap()
     }
 }
 
