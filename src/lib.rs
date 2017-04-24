@@ -35,7 +35,7 @@
 //! ```
 
 #[cfg(feature = "tokio")] extern crate futures;
-#[cfg(feature = "tokio")] extern crate tokio_io;
+#[cfg(feature = "tokio")] #[macro_use] extern crate tokio_io;
 
 use std::fmt;
 use std::io::prelude::*;
@@ -203,7 +203,10 @@ impl<S: AsyncRead + AsyncWrite> AsyncRead for BufStream<S> {}
 #[cfg(feature = "tokio")]
 impl<S: AsyncRead + AsyncWrite> AsyncWrite for BufStream<S> {
     fn shutdown(&mut self) -> Poll<(), io::Error> {
-        self.inner.get_mut().0.as_mut().unwrap().shutdown()
+        let mut inner = self.inner.get_mut().0.as_mut().unwrap();
+
+        try_nb!(inner.flush());
+        inner.shutdown()
     }
 }
 
