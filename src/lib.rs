@@ -33,6 +33,30 @@
 //! buf.read(&mut [0; 1024]).unwrap();
 //! buf.write(&[0; 1024]).unwrap();
 //! ```
+//!
+//! # Async I/O
+//!
+//! This crate optionally can support async I/O streams with the [Tokio stack] via
+//! the `tokio` feature of this crate:
+//!
+//! [Tokio stack]: https://tokio.rs/
+//!
+//! ```toml
+//! bufstream = { version = "0.2", features = ["tokio"] }
+//! ```
+//!
+//! All methods are internally capable of working with streams that may return
+//! [`ErrorKind::WouldBlock`] when they're not ready to perform the particular
+//! operation.
+//!
+//! [`ErrorKind::WouldBlock`]: https://doc.rust-lang.org/std/io/enum.ErrorKind.html
+//!
+//! Note that care needs to be taken when using these objects, however. The
+//! Tokio runtime, in particular, requires that data is fully flushed before
+//! dropping streams. For compatibility with blocking streams all streams are
+//! flushed/written when they are dropped, and this is not always a suitable
+//! time to perform I/O. If I/O streams are flushed before drop, however, then
+//! these operations will be a noop.
 
 #[cfg(feature = "tokio")] extern crate futures;
 #[cfg(feature = "tokio")] #[macro_use] extern crate tokio_io;
@@ -203,9 +227,8 @@ impl<S: AsyncRead + AsyncWrite> AsyncRead for BufStream<S> {}
 #[cfg(feature = "tokio")]
 impl<S: AsyncRead + AsyncWrite> AsyncWrite for BufStream<S> {
     fn shutdown(&mut self) -> Poll<(), io::Error> {
+        try_nb!(self.flush());
         let mut inner = self.inner.get_mut().0.as_mut().unwrap();
-
-        try_nb!(inner.flush());
         inner.shutdown()
     }
 }
