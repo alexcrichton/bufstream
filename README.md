@@ -5,7 +5,7 @@ Buffered I/O streams for reading/writing
 
 [![Build Status](https://travis-ci.org/alexcrichton/bufstream.svg?branch=master)](https://travis-ci.org/alexcrichton/bufstream)
 
-[Documentation](http://alexcrichton.com/bufstream)
+[Documentation](https://docs.rs/bufstream/)
 
 ## Usage
 
