@@ -63,7 +63,7 @@
 
 use std::fmt;
 use std::io::prelude::*;
-use std::io::{self, BufReader, BufWriter};
+use std::io::{self, BufReader, BufWriter, Seek, SeekFrom};
 use std::error;
 
 #[cfg(feature = "tokio")] use futures::Poll;
@@ -139,6 +139,12 @@ impl<W: Read + Write> Read for InternalBufWriter<W> {
 impl<W: Write + fmt::Debug> fmt::Debug for InternalBufWriter<W> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.get_ref().fmt(f)
+    }
+}
+
+impl<S: Seek + Write> Seek for InternalBufWriter<S> {
+    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        self.get_mut().get_mut().seek(pos)
     }
 }
 
@@ -218,6 +224,12 @@ impl<S: Read + Write> Write for BufStream<S> {
     }
     fn flush(&mut self) -> io::Result<()> {
         self.inner.get_mut().0.as_mut().unwrap().flush()
+    }
+}
+
+impl<S: Seek + Write> Seek for BufStream<S> {
+    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        self.inner.seek(pos)
     }
 }
 
