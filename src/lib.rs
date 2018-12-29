@@ -239,13 +239,19 @@ impl<S: AsyncRead + AsyncWrite> BufStream<S> {
     ///
     /// The internal write buffer is written out before returning the stream.
     /// Any leftover data in the read buffer is lost.
-    pub fn poll_into_inner(mut self) -> Poll<S, IntoInnerError<BufStream<S>>> {
+    pub fn poll_into_inner(&mut self) -> Poll<S, io::Error> {
         // Do the flush asynchronously so that the underlying BufWriter will
         // skip its blocking flush call
         match self.poll_flush() {
-            Ok(Async::Ready(_)) => Ok(Async::Ready(self.into_inner()?)),
+            Ok(Async::Ready(_)) => {
+                let InternalBufWriter(ref mut w) = *self.inner.get_mut();
+                match w.take().unwrap().into_inner() {
+                    Err(err) => Err(io::Error::new(err.error().kind(), err.error().to_string())),
+                    Ok(s) => Ok(Async::Ready(s)),
+                }
+            }
             Ok(Async::NotReady) => Ok(Async::NotReady),
-            Err(e) => Err(IntoInnerError(self, e)),
+            Err(err) => Err(err),
         }
     }
 }
