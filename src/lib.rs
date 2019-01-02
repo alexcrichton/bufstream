@@ -66,7 +66,7 @@ use std::io::prelude::*;
 use std::io::{self, BufReader, BufWriter, Seek, SeekFrom};
 use std::error;
 
-#[cfg(feature = "tokio")] use futures::Poll;
+#[cfg(feature = "tokio")] use futures::{Async, Poll};
 #[cfg(feature = "tokio")] use tokio_io::{AsyncRead, AsyncWrite};
 
 const DEFAULT_BUF_SIZE: usize = 8 * 1024;
@@ -230,6 +230,29 @@ impl<S: Read + Write> Write for BufStream<S> {
 impl<S: Seek + Write> Seek for BufStream<S> {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         self.inner.seek(pos)
+    }
+}
+
+#[cfg(feature = "tokio")]
+impl<S: AsyncRead + AsyncWrite> BufStream<S> {
+    /// Unwraps this `BufStream`, asynchronously returning the underlying stream.
+    ///
+    /// The internal write buffer is written out before returning the stream.
+    /// Any leftover data in the read buffer is lost.
+    pub fn poll_into_inner(&mut self) -> Poll<S, io::Error> {
+        // Do the flush asynchronously so that the underlying BufWriter will
+        // skip its blocking flush call
+        match self.poll_flush() {
+            Ok(Async::Ready(_)) => {
+                let InternalBufWriter(ref mut w) = *self.inner.get_mut();
+                match w.take().unwrap().into_inner() {
+                    Err(err) => Err(io::Error::new(err.error().kind(), err.error().to_string())),
+                    Ok(s) => Ok(Async::Ready(s)),
+                }
+            }
+            Ok(Async::NotReady) => Ok(Async::NotReady),
+            Err(err) => Err(err),
+        }
     }
 }
 
